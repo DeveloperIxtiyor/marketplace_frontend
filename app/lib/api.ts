@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://simple-gown-justify.ngrok-free.dev";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export type TokenResponse = {
     access_token: string;
@@ -58,7 +58,9 @@ export async function apiFetch<T>(
     auth = false,
 ): Promise<T> {
     const token = auth ? getStoredTokens()?.access_token : undefined;
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const url = `${API_BASE_URL || ""}${path}`.startsWith("http") ? `${API_BASE_URL || ""}${path}` : `/api${path}`;
+
+    const response = await fetch(url, {
         ...init,
         headers: {
             ...(init.headers || {}),

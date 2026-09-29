@@ -1,0 +1,59 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+export default function AdminKategoriyalarSahifa() {
+  const [royxat, setRoyxat] = useState<any>([]);
+  const [yuklanmoqda, setYuklanmoqda] = useState(true);
+
+  useEffect(() => {
+    fetch("http://127.0.0")
+      .then((res) => res.json())
+      .then((data) => {
+        setRoyxat(data);
+        setYuklanmoqda(false);
+      })
+      .catch((err) => {
+        console.error("Xatolik:", err);
+        setYuklanmoqda(false);
+      });
+  }, []);
+
+  if (yuklanmoqda) return <div className="p-6 text-center text-white">Yuklanmoqda...</div>;
+
+  return <AdminIchki royxat={royxat} />;
+}
+
+function AdminIchki({ royxat }: { royxat: any }) {
+  let maolumot: any[] = [];
+  if (Array.isArray(royxat)) {
+    maolumot = royxat;
+  } else if (royxat && typeof royxat === "object") {
+    if (Array.isArray(royxat.items)) maolumot = royxat.items;
+    else if (Array.isArray(royxat.data)) maolumot = royxat.data;
+    else if (Array.isArray(royxat.categories)) maolumot = royxat.categories;
+  }
+
+  return (
+    <main className="p-6 text-white">
+      <h1 className="text-2xl font-bold mb-4">Admin Kategoriyalar</h1>
+      <div className="grid gap-3 text-black">
+        {maolumot.length > 0 ? (
+          maolumot.map((k: any) => (
+            <Card key={k.id} className={k.faol ? "" : "opacity-60"}>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold">{k.nom || k.name || "Nomsiz kategoriya"}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">{k.tavsif || "Tavsif mavjud emas."}</p>
+                <p className="text-xs text-gray-400 mt-2">ID: {k.id} | Slug: {k.slug || "yo'q"}</p>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <p className="text-gray-400 text-sm p-4">Kategoriyalar ro'yxati bo'sh yoki format mos kelmadi.</p>
+        )}
+      </div>
+    </main>
+  );
+}

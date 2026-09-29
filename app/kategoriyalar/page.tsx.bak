@@ -1,0 +1,33 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type Kategoriya = { id: number; nomi: string };
+
+export default function KategoriyalarSahifa() {
+  const [royxat, setRoyxat] = useState<Kategoriya[]>([]);
+  const [yuklanmoqda, setYuklanmoqda] = useState(true);
+  const [xato, setXato] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/kategoriyalar")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Server xatosi: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => setRoyxat(data))
+      .catch((err) => setXato(err.message))
+      .finally(() => setYuklanmoqda(false));
+  }, []);
+
+  if (yuklanmoqda) return <p>Yuklanmoqda...</p>;
+  if (xato) return <p>Xatolik: {xato}</p>;
+
+  return (
+    <ul>
+      {royxat.map((k) => (
+        <li key={k.id}>{k.nomi}</li>
+      ))}
+    </ul>
+  );
+}

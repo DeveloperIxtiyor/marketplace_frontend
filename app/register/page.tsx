@@ -2,97 +2,100 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
-import { registerWeb, storeTokens } from "@/app/lib/api";
+import { useEffect, useState, type FormEvent } from "react";
 
-export default function RegisterPage() {
-    const router = useRouter();
-    const [form, setForm] = useState({ ism: "", email: "", parol: "" });
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+import { useAuth } from "@/components/auth-provider";
+import { Maydon, Tugma, XatoQutisi, Yuklanmoqda } from "@/components/form-ui";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        setLoading(true);
-        setError("");
+export default function RoyxatdanOtishSahifa() {
+  const { holat, royxatdanOtish } = useAuth();
+  const router = useRouter();
 
-        try {
-            const data = await registerWeb(form.ism, form.email, form.parol);
-            storeTokens(data);
-            router.push("/profile");
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Ro‘yxatdan o‘tishda xatolik yuzaga keldi");
-        } finally {
-            setLoading(false);
-        }
+  const [ism, setIsm] = useState("");
+  const [email, setEmail] = useState("");
+  const [parol, setParol] = useState("");
+  const [xato, setXato] = useState<string | null>(null);
+  const [yuborilmoqda, setYuborilmoqda] = useState(false);
+
+  useEffect(() => {
+    if (holat === "kirgan") router.replace("/");
+  }, [holat, router]);
+
+  if (holat === "yuklanmoqda" || holat === "kirgan") return <Yuklanmoqda />;
+
+  async function yubor(e: FormEvent) {
+    e.preventDefault();
+    setXato(null);
+    setYuborilmoqda(true);
+    try {
+      await royxatdanOtish(ism, email, parol);
+      router.replace("/");
+    } catch (err) {
+      setXato(err instanceof Error ? err.message : "Ro'yxatdan o'tishda xatolik");
+    } finally {
+      setYuborilmoqda(false);
     }
+  }
 
-    return (
-        <main className="min-h-screen bg-slate-950 px-4 py-12 text-white">
-            <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
-                <div className="mb-8">
-                    <p className="text-sm uppercase tracking-[0.24em] text-emerald-400">Marketplace</p>
-                    <h1 className="mt-3 text-3xl font-bold">Ro‘yxatdan o‘ting</h1>
-                </div>
-
-                <form className="space-y-5" onSubmit={handleSubmit}>
-                    <label className="block text-sm text-slate-200">
-                        Ism
-                        <input
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none ring-0 transition focus:border-emerald-400"
-                            value={form.ism}
-                            onChange={(e) => setForm((prev) => ({ ...prev, ism: e.target.value }))}
-                            placeholder="Ali Valiyev"
-                            required
-                        />
-                    </label>
-
-                    <label className="block text-sm text-slate-200">
-                        Email
-                        <input
-                            type="email"
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none transition focus:border-emerald-400"
-                            value={form.email}
-                            onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-                            placeholder="email@example.com"
-                            required
-                        />
-                    </label>
-
-                    <label className="block text-sm text-slate-200">
-                        Parol
-                        <input
-                            type="password"
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none transition focus:border-emerald-400"
-                            value={form.parol}
-                            onChange={(e) => setForm((prev) => ({ ...prev, parol: e.target.value }))}
-                            placeholder="••••••••"
-                            required
-                        />
-                    </label>
-
-                    {error ? (
-                        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                            {error}
-                        </div>
-                    ) : null}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
-                    >
-                        {loading ? "Yuborilmoqda..." : "Ro‘yxatdan o‘tish"}
-                    </button>
-                </form>
-
-                <p className="mt-6 text-center text-sm text-slate-300">
-                    Allaqachon hisobingiz bormi? {" "}
-                    <Link href="/login" className="font-semibold text-emerald-400 hover:text-emerald-300">
-                        Kiring
-                    </Link>
-                </p>
-            </div>
-        </main>
-    );
+  return (
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-4 p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Ro&apos;yxatdan o&apos;tish</CardTitle>
+          <CardDescription>Yangi hisob yarating.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={yubor} className="grid gap-3" autoComplete="on">
+            <Maydon
+              id="ism"
+              yorliq="Ism"
+              required
+              minLength={2}
+              value={ism}
+              onChange={(e) => setIsm(e.target.value)}
+              placeholder="Ali Valiyev"
+            />
+            <Maydon
+              id="email"
+              yorliq="Email"
+              type="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@example.com"
+            />
+            <Maydon
+              id="parol"
+              yorliq="Parol"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={8}
+              value={parol}
+              onChange={(e) => setParol(e.target.value)}
+              placeholder="••••••••"
+            />
+            <XatoQutisi>{xato}</XatoQutisi>
+            <Tugma type="submit" disabled={yuborilmoqda}>
+              {yuborilmoqda ? "Yuborilmoqda..." : "Ro'yxatdan o'tish"}
+            </Tugma>
+          </form>
+          <p className="text-muted-foreground mt-4 text-center text-sm">
+            Hisobingiz bormi?{" "}
+            <Link href="/login" className="text-foreground font-medium underline underline-offset-4">
+              Kiring
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
+    </main>
+  );
 }

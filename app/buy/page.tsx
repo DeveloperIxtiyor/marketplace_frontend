@@ -1,52 +1,119 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-const products = [
-    { id: 1, name: "AirPods Pro", price: "1 299 000 so‘m", status: "New" },
-    { id: 2, name: "Smart Watch X", price: "2 450 000 so‘m", status: "Popular" },
-    { id: 3, name: "Laptop Air 14", price: "8 990 000 so‘m", status: "Hot" },
-    { id: 4, name: "Bluetooth Speaker", price: "690 000 so‘m", status: "Sale" },
-    { id: 5, name: "Power Bank 20000", price: "540 000 so‘m", status: "New" },
-    { id: 6, name: "4K Camera", price: "3 800 000 so‘m", status: "Best" },
-];
+import { apiSoraq } from "@/lib/api";
 
-export default function BuyPage() {
-    return (
-        <main className="min-h-screen bg-[#020b1f] px-4 py-8 text-white md:px-8">
-            <div className="mx-auto max-w-6xl">
-                <div className="mb-8 flex items-center justify-between gap-4">
-                    <div>
-                        <p className="text-sm uppercase tracking-[0.3em] text-[#9f7aea]">Marketplace</p>
-                        <h1 className="mt-3 text-4xl font-black">Sotib olish</h1>
-                    </div>
-                    <Link href="/" className="rounded-xl border border-white/10 bg-[#13233b] px-4 py-2 text-sm font-medium hover:bg-[#1a2c48]">
-                        Orqaga
-                    </Link>
-                </div>
+interface Mahsulot {
+  id: number;
+  nomi: string;
+  narx: number;
+  status?: string | null;
+  rasm_havolasi?: string | null;
+}
 
-                <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                    {products.map((product) => (
-                        <article key={product.id} className="rounded-[24px] border border-white/10 bg-[#0d1b2a]/90 p-4 shadow-[0_0_24px_rgba(15,23,42,0.6)]">
-                            <div className="h-44 rounded-[18px] bg-gradient-to-br from-[#2a3d63] via-[#1b2d46] to-[#0d1426]" />
+export default function SotibOlishSahifa() {
+  const [mahsulotlar, setMahsulotlar] = useState<Mahsulot[]>([]);
+  const [yuklanmoqda, setYuklanmoqda] = useState(true);
+  const [xato, setXato] = useState<string | null>(null);
 
-                            <div className="mt-4 flex items-center justify-between">
-                                <span className="rounded-full bg-[#2e5d88]/20 px-2 py-1 text-xs font-medium text-[#8cc8ff]">
-                                    {product.status}
-                                </span>
-                                <span className="text-sm text-slate-400">#{product.id}</span>
-                            </div>
+  useEffect(() => {
+    let bekor = false;
 
-                            <h2 className="mt-4 text-2xl font-semibold text-white">{product.name}</h2>
+    async function yukla() {
+      try {
+        setYuklanmoqda(true);
+        setXato(null);
+        // Eslatma: /products endpoint hali backendda yo'q (keyingi darsda
+        // quriladi). Shu sabab bu yerda xato kutish normal holat.
+        const data = await apiSoraq<Mahsulot[]>("/products", { auth: false });
+        if (!bekor) setMahsulotlar(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (!bekor) {
+          setXato(
+            err instanceof Error
+              ? err.message
+              : "Mahsulotlarni yuklashda xatolik yuz berdi",
+          );
+          setMahsulotlar([]);
+        }
+      } finally {
+        if (!bekor) setYuklanmoqda(false);
+      }
+    }
 
-                            <div className="mt-5 flex items-center justify-between">
-                                <span className="text-lg font-bold text-[#8ef0c4]">{product.price}</span>
-                                <button className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200">
-                                    Buy now
-                                </button>
-                            </div>
-                        </article>
-                    ))}
-                </div>
-            </div>
-        </main>
-    );
+    void yukla();
+    return () => {
+      bekor = true;
+    };
+  }, []);
+
+  return (
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 p-4 pb-24 md:pb-4">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+            Marketplace
+          </p>
+          <h1 className="font-heading mt-1 text-2xl font-semibold">Sotib olish</h1>
+        </div>
+        <Link
+          href="/"
+          className="border-input bg-background hover:bg-accent rounded-xl border px-4 py-2 text-sm font-medium"
+        >
+          Orqaga
+        </Link>
+      </div>
+
+      {yuklanmoqda ? (
+        <div className="border-input rounded-2xl border p-6 text-sm">
+          Mahsulotlar yuklanmoqda...
+        </div>
+      ) : xato ? (
+        <div className="border-destructive/30 bg-destructive/10 text-destructive rounded-2xl border p-6 text-sm">
+          {xato}
+        </div>
+      ) : mahsulotlar.length === 0 ? (
+        <div className="border-input rounded-2xl border p-8 text-center text-sm">
+          Hozircha mahsulotlar mavjud emas. Mahsulotlar backendga
+          qo&apos;shilgach, ular bu sahifada paydo bo&apos;ladi.
+        </div>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {mahsulotlar.map((mahsulot) => (
+            <article
+              key={mahsulot.id}
+              className="border-input bg-card rounded-2xl border p-4"
+            >
+              <div className="h-44 rounded-xl bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900" />
+              <div className="mt-4 flex items-center justify-between">
+                <span className="bg-primary/10 text-primary rounded-full px-2 py-1 text-xs font-medium">
+                  {mahsulot.status ?? "Barchasi"}
+                </span>
+                <span className="text-muted-foreground text-sm">
+                  #{mahsulot.id}
+                </span>
+              </div>
+              <h2 className="mt-4 text-xl font-semibold">{mahsulot.nomi}</h2>
+              <div className="mt-5 flex items-center justify-between">
+                <span className="text-lg font-bold">
+                  {mahsulot.narx.toLocaleString("uz-UZ")} so&apos;m
+                </span>
+                <button className="bg-primary text-primary-foreground rounded-xl px-3 py-2 text-sm font-semibold">
+                  Sotib olish
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      <nav className="mobile-nav md:hidden">
+        <Link href="/">⌂<span>Bosh sahifa</span></Link>
+        <Link href="/buy" className="active">◫<span>Sotib olish</span></Link>
+        <Link href="/profile">◎<span>Profil</span></Link>
+      </nav>
+    </main>
+  );
 }

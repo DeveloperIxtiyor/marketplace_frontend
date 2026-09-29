@@ -1,0 +1,49 @@
+"use client";
+import { useEffect, useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+type Kategoriya = {
+  id: number;
+  nomi: string;
+  tavsif?: string;
+  slug?: string;
+  faol?: boolean;
+};
+
+export default function KategoriyalarSahifa() {
+  const [royxat, setRoyxat] = useState<Kategoriya[]>([]);
+  const [yuklanmoqda, setYuklanmoqda] = useState(true);
+  const [xato, setXato] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/kategoriyalar")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Server xatosi: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => setRoyxat(data))
+      .catch((err) => setXato(err.message))
+      .finally(() => setYuklanmoqda(false));
+  }, []);
+
+  if (yuklanmoqda) return <div className="p-6 text-center text-white">Yuklanmoqda...</div>;
+  if (xato) return <div className="p-6 text-red-400">Xatolik: {xato}</div>;
+
+  return (
+    <main className="p-6 text-white">
+      <h1 className="text-2xl font-bold mb-4">Kategoriyalar</h1>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-black">
+        {royxat.filter((k) => k.faol !== false).map((k) => (
+          <Card key={k.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">{k.nomi}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">{k.tavsif || "Tavsif mavjud emas."}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </main>
+  );
+}

@@ -1,97 +1,143 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { clearTokens, getMe, logout, type UserProfile } from "@/app/lib/api";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 
-export default function ProfilePage() {
-    const [user, setUser] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState(true);
+import { Himoyalangan } from "@/components/protected";
+import { useAuth } from "@/components/auth-provider";
+import { Maydon, Tugma, XatoQutisi } from "@/components/form-ui";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { parolniOzgartir } from "@/lib/auth-api";
 
-    useEffect(() => {
-        async function loadUser() {
-            try {
-                const data = await getMe();
-                setUser(data);
-            } catch {
-                setUser(null);
-            } finally {
-                setLoading(false);
-            }
-        }
+export default function ProfilSahifa() {
+  return (
+    <Himoyalangan>
+      <ProfilIchki />
+    </Himoyalangan>
+  );
+}
 
-        loadUser();
-    }, []);
+function ProfilIchki() {
+  const { profil, chiqish } = useAuth();
+  const router = useRouter();
 
-    async function handleLogout() {
-        await logout();
-        window.location.href = "/login";
+  const [eskiParol, setEskiParol] = useState("");
+  const [yangiParol, setYangiParol] = useState("");
+  const [parolXato, setParolXato] = useState<string | null>(null);
+  const [yuborilmoqda, setYuborilmoqda] = useState(false);
+
+  if (!profil) return null;
+
+  async function chiqishBos() {
+    await chiqish();
+    router.replace("/login");
+  }
+
+  async function parolYubor(e: FormEvent) {
+    e.preventDefault();
+    setParolXato(null);
+    setYuborilmoqda(true);
+    try {
+      await parolniOzgartir({ eski_parol: eskiParol, yangi_parol: yangiParol });
+      // Backend parol almashgach barcha tokenlarni bekor qiladi —
+      // shuning uchun o'zimiz chiqib, login sahifasiga o'tamiz.
+      await chiqish();
+      router.replace("/login");
+    } catch (err) {
+      setParolXato(err instanceof Error ? err.message : "Xatolik");
+    } finally {
+      setYuborilmoqda(false);
     }
+  }
 
-    if (loading) {
-        return <main className="min-h-screen bg-slate-950 px-6 py-24 text-white">Yuklanmoqda...</main>;
-    }
+  return (
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-semibold">{profil.ism}</h1>
+          <p className="text-muted-foreground text-sm">
+            Rolingiz: <span className="font-mono">{profil.role}</span>
+          </p>
+        </div>
+        <Tugma variant="ikkilamchi" className="w-auto px-3" onClick={chiqishBos}>
+          Chiqish
+        </Tugma>
+      </div>
 
-    if (!user) {
-        return (
-            <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 py-24 text-white">
-                <div className="max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
-                    <h1 className="text-2xl font-bold">Kirish kerak</h1>
-                    <p className="mt-3 text-slate-300">Ushbu sahifaga kirish uchun avval hisobga kiring.</p>
-                    <div className="mt-6 flex justify-center gap-3">
-                        <Link href="/login" className="rounded-xl bg-cyan-500 px-4 py-2 font-medium text-slate-950">Kirish</Link>
-                        <Link href="/register" className="rounded-xl border border-white/10 px-4 py-2 font-medium">Ro‘yxatdan o‘tish</Link>
-                    </div>
-                </div>
-            </main>
-        );
-    }
-
-    return (
-        <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
-            <div className="mx-auto max-w-5xl">
-                <header className="mb-8 flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-5">
-                    <div>
-                        <p className="text-sm uppercase tracking-[0.24em] text-violet-400">Account</p>
-                        <h1 className="mt-2 text-2xl font-bold">{user.ism}</h1>
-                    </div>
-                    <button
-                        onClick={handleLogout}
-                        className="rounded-xl border border-white/10 bg-slate-800 px-4 py-2 font-medium hover:bg-slate-700"
-                    >
-                        Chiqish
-                    </button>
-                </header>
-
-                <div className="grid gap-6 md:grid-cols-3">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                        <p className="text-sm text-slate-300">Email</p>
-                        <p className="mt-2 text-xl font-semibold">{user.email}</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                        <p className="text-sm text-slate-300">Telefon</p>
-                        <p className="mt-2 text-xl font-semibold">{user.telefon || "Ko‘rsatilmagan"}</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                        <p className="text-sm text-slate-300">Rol</p>
-                        <p className="mt-2 text-xl font-semibold capitalize">{user.role}</p>
-                    </div>
-                </div>
-
-                <section className="mt-10 rounded-3xl border border-white/10 bg-white/5 p-6">
-                    <h2 className="text-xl font-semibold">Telegram ma’lumotlari</h2>
-                    <div className="mt-4 grid gap-4 md:grid-cols-2">
-                        <div className="rounded-xl bg-slate-900/80 p-4">
-                            <p className="text-sm text-slate-300">Telegram ID</p>
-                            <p className="mt-2 text-lg font-medium">{user.telegram_id ?? "-"}</p>
-                        </div>
-                        <div className="rounded-xl bg-slate-900/80 p-4">
-                            <p className="text-sm text-slate-300">Telegram username</p>
-                            <p className="mt-2 text-lg font-medium">{user.telegram_username ?? "-"}</p>
-                        </div>
-                    </div>
-                </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Ma&apos;lumotlar</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Email</span>
+            <span>{profil.email ?? "—"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Telefon</span>
+            <span>{profil.telefon ?? "—"}</span>
+          </div>
+          {profil.auth_provider === "telegram" ? (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Telegram</span>
+              <span>@{profil.telegram_username ?? profil.telegram_id}</span>
             </div>
-        </main>
-    );
+          ) : null}
+        </CardContent>
+      </Card>
+
+      {/* Telegram orqali kirgan foydalanuvchida parol yo'q — forma faqat
+          web orqali kirganlar uchun ko'rsatiladi. */}
+      {profil.auth_provider === "web" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Parolni almashtirish</CardTitle>
+            <CardDescription>
+              Almashtirgach, qayta kirishingiz kerak bo&apos;ladi.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={parolYubor} className="grid gap-3">
+              <Maydon
+                id="eski-parol"
+                yorliq="Eski parol"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={eskiParol}
+                onChange={(e) => setEskiParol(e.target.value)}
+              />
+              <Maydon
+                id="yangi-parol"
+                yorliq="Yangi parol"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={yangiParol}
+                onChange={(e) => setYangiParol(e.target.value)}
+              />
+              <XatoQutisi>{parolXato}</XatoQutisi>
+              <Tugma type="submit" disabled={yuborilmoqda}>
+                {yuborilmoqda ? "Saqlanmoqda..." : "Almashtirish"}
+              </Tugma>
+            </form>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <nav className="mobile-nav md:hidden">
+        <Link href="/">⌂<span>Bosh sahifa</span></Link>
+        <Link href="/buy">◫<span>Sotib olish</span></Link>
+        <Link href="/profile" className="active">◎<span>Profil</span></Link>
+      </nav>
+    </main>
+  );
 }

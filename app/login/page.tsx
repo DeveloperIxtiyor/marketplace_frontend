@@ -2,86 +2,90 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
-import { loginWeb, storeTokens } from "@/app/lib/api";
+import { useEffect, useState, type FormEvent } from "react";
 
-export default function LoginPage() {
-    const router = useRouter();
-    const [form, setForm] = useState({ email: "", parol: "" });
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+import { useAuth } from "@/components/auth-provider";
+import { Maydon, Tugma, XatoQutisi, Yuklanmoqda } from "@/components/form-ui";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        setLoading(true);
-        setError("");
+export default function LoginSahifa() {
+  const { holat, login } = useAuth();
+  const router = useRouter();
 
-        try {
-            const data = await loginWeb(form.email, form.parol);
-            storeTokens(data);
-            router.push("/profile");
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Kirishda xatolik yuzaga keldi");
-        } finally {
-            setLoading(false);
-        }
+  const [email, setEmail] = useState("");
+  const [parol, setParol] = useState("");
+  const [xato, setXato] = useState<string | null>(null);
+  const [yuborilmoqda, setYuborilmoqda] = useState(false);
+
+  // Allaqachon kirgan bo'lsa (Telegram avtomatik kiritdi) — ushlab turmaymiz.
+  useEffect(() => {
+    if (holat === "kirgan") router.replace("/");
+  }, [holat, router]);
+
+  if (holat === "yuklanmoqda" || holat === "kirgan") return <Yuklanmoqda />;
+
+  async function yubor(e: FormEvent) {
+    e.preventDefault();
+    setXato(null);
+    setYuborilmoqda(true);
+    try {
+      await login(email, parol);
+      router.replace("/");
+    } catch (err) {
+      setXato(err instanceof Error ? err.message : "Kirishda xatolik");
+    } finally {
+      setYuborilmoqda(false);
     }
+  }
 
-    return (
-        <main className="min-h-screen bg-slate-950 px-4 py-12 text-white">
-            <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
-                <div className="mb-8">
-                    <p className="text-sm uppercase tracking-[0.24em] text-cyan-400">Welcome back</p>
-                    <h1 className="mt-3 text-3xl font-bold">Kabinetga kirish</h1>
-                </div>
-
-                <form className="space-y-5" onSubmit={handleSubmit}>
-                    <label className="block text-sm text-slate-200">
-                        Email
-                        <input
-                            type="email"
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none transition focus:border-cyan-400"
-                            value={form.email}
-                            onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-                            placeholder="email@example.com"
-                            required
-                        />
-                    </label>
-
-                    <label className="block text-sm text-slate-200">
-                        Parol
-                        <input
-                            type="password"
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none transition focus:border-cyan-400"
-                            value={form.parol}
-                            onChange={(e) => setForm((prev) => ({ ...prev, parol: e.target.value }))}
-                            placeholder="••••••••"
-                            required
-                        />
-                    </label>
-
-                    {error ? (
-                        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                            {error}
-                        </div>
-                    ) : null}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full rounded-xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-70"
-                    >
-                        {loading ? "Kirish..." : "Kirish"}
-                    </button>
-                </form>
-
-                <p className="mt-6 text-center text-sm text-slate-300">
-                    Hisobingiz yo‘qmi? {" "}
-                    <Link href="/register" className="font-semibold text-cyan-400 hover:text-cyan-300">
-                        Ro‘yxatdan o‘ting
-                    </Link>
-                </p>
-            </div>
-        </main>
-    );
+  return (
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-4 p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Kirish</CardTitle>
+          <CardDescription>Hisobingizga email va parol bilan kiring.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={yubor} className="grid gap-3" autoComplete="on">
+            <Maydon
+              id="email"
+              yorliq="Email"
+              type="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@example.com"
+            />
+            <Maydon
+              id="parol"
+              yorliq="Parol"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={parol}
+              onChange={(e) => setParol(e.target.value)}
+              placeholder="••••••••"
+            />
+            <XatoQutisi>{xato}</XatoQutisi>
+            <Tugma type="submit" disabled={yuborilmoqda}>
+              {yuborilmoqda ? "Kirilmoqda..." : "Kirish"}
+            </Tugma>
+          </form>
+          <p className="text-muted-foreground mt-4 text-center text-sm">
+            Hisobingiz yo&apos;qmi?{" "}
+            <Link href="/register" className="text-foreground font-medium underline underline-offset-4">
+              Ro&apos;yxatdan o&apos;ting
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
+    </main>
+  );
 }

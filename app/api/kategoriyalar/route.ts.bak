@@ -1,0 +1,11 @@
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  const royxat = [
+    { id: 1, nomi: "Telefonlar" },
+    { id: 2, nomi: "Noutbuklar" },
+    { id: 3, nomi: "Aksessuarlar" },
+  ];
+
+  return NextResponse.json(royxat);
+}

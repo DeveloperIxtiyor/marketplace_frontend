@@ -110,7 +110,7 @@ export default function SotibOlishSahifa() {
       )}
 
       <nav className="mobile-nav md:hidden">
-        <Link href="/">⌂<span>Bosh sahifa</span></Link>
+        <Link href="/mahsulotlar">⌂<span>Bosh sahifa</span></Link>
         <Link href="/buy" className="active">◫<span>Sotib olish</span></Link>
         <Link href="/profile">◎<span>Profil</span></Link>
       </nav>

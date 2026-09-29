@@ -38,6 +38,9 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
+            <Link href="/mahsulotlar">
+              <Tugma>Mahsulotlar</Tugma>
+            </Link>
             <Link href="/kategoriyalar">
               <Tugma>Kategoriyalar</Tugma>
             </Link>
@@ -68,6 +71,9 @@ export default function Home() {
             </Link>
             <Link href="/register">
               <Tugma variant="ikkilamchi">Ro&apos;yxatdan o&apos;tish</Tugma>
+            </Link>
+            <Link href="/mahsulotlar">
+              <Tugma>Mahsulotlar</Tugma>
             </Link>
             <Link href="/kategoriyalar">
               <Tugma variant="ikkilamchi">

@@ -130,7 +130,7 @@ function Chip({
   return (
     <Tugma
       variant={faol ? "asosiy" : "ikkilamchi"}
-      className="h-8 w-auto px-3 text-xs"
+      className={"h-8 w-auto px-3 text-xs " + (faol ? "" : "text-slate-900")}
       onClick={onClick}
     >
       {children}

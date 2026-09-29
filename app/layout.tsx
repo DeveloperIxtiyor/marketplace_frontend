@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 
 import { AuthProvider } from "@/components/auth-provider";
+import { BottomNav } from "@/components/bottom-nav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,8 +39,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-950 text-white">
-        <AuthProvider>{children}</AuthProvider>
+      <body className="min-h-full flex flex-col bg-slate-950 pb-20 text-white md:pb-0">
+        <AuthProvider>{children}<BottomNav /></AuthProvider>
       </body>
     </html>
   );

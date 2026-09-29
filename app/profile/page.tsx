@@ -132,12 +132,6 @@ function ProfilIchki() {
           </CardContent>
         </Card>
       ) : null}
-
-      <nav className="mobile-nav md:hidden">
-        <Link href="/mahsulotlar">⌂<span>Bosh sahifa</span></Link>
-        <Link href="/buy">◫<span>Sotib olish</span></Link>
-        <Link href="/profile" className="active">◎<span>Profil</span></Link>
-      </nav>
     </main>
   );
 }

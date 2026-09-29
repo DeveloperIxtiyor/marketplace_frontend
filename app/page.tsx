@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 
@@ -41,7 +41,7 @@ export default function Home() {
             <Link href="/kategoriyalar">
               <Tugma>Kategoriyalar</Tugma>
             </Link>
-            <Link href="/profil">
+            <Link href="/profile">
               <Tugma variant="ikkilamchi">Profilim</Tugma>
             </Link>
             {profil.role === "admin" ? (

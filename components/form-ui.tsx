@@ -31,7 +31,7 @@ const TUGMA_VARIANT = {
   asosiy:
     "bg-primary text-primary-foreground hover:bg-primary/90",
   ikkilamchi:
-    "border-input bg-background hover:bg-accent hover:text-accent-foreground border",
+    "border border-slate-300 bg-white text-slate-900 hover:bg-slate-100",
 } as const;
 
 export function Tugma({

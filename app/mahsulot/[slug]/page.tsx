@@ -2,7 +2,11 @@
 
 /**
  * Bitta mahsulot sahifasi — dinamik marshrut: /mahsulot/iphone-15-pro
- * Next.js 16 da `params` — Promise, client komponentda `use()` bilan ochamiz.
+ *
+ * Next.js 16 da `params` — **Promise**. Client komponentda uni React'ning
+ * `use()` hook'i bilan ochamiz (server komponentda `await` bo'lardi).
+ * Next.js 14 va undan oldin u oddiy obyekt edi — internetdagi ko'p
+ * misollarda hali ham shunday yozilgan.
  */
 
 import Link from "next/link";
@@ -10,6 +14,7 @@ import { use, useEffect, useState } from "react";
 
 import { useAuth } from "@/components/auth-provider";
 import { Tugma, XatoQutisi, Yuklanmoqda } from "@/components/form-ui";
+import { RasmGalereya } from "@/components/rasm-galereya";
 import {
   Card,
   CardContent,
@@ -62,6 +67,8 @@ export default function MahsulotSahifa({
 
   if (!mahsulot) return <Yuklanmoqda />;
 
+  // Mahsulot menikimi? Bu — faqat "Tahrirlash" tugmasini ko'rsatish uchun.
+  // Haqiqiy tekshiruv backendda (`egalikni_tekshir`).
   const meniki =
     profil !== null &&
     (profil.id === mahsulot.egasi.id || profil.role === "admin");
@@ -76,14 +83,10 @@ export default function MahsulotSahifa({
       </Link>
 
       <Card>
-        {mahsulot.rasm_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={mahsulot.rasm_url}
-            alt={mahsulot.nom}
-            className="max-h-80 w-full object-cover"
-          />
-        ) : null}
+        {/* Bu yerda `object-contain` ishlatiladi (kartochkada `object-cover`
+            edi): mahsulot sahifasida rasm to'liq ko'rinishi kerak, chetlari
+            kesilmasin. Kartochkada esa bir xil balandlik muhimroq. */}
+        <RasmGalereya rasmlar={mahsulot.rasmlar} alt={mahsulot.nom} />
 
         <CardHeader>
           <CardTitle>{mahsulot.nom}</CardTitle>
@@ -114,6 +117,7 @@ export default function MahsulotSahifa({
             <p className="text-muted-foreground text-sm">Tavsif yo&apos;q.</p>
           )}
 
+          {/* Savatga qo'shish keyingi darsda — hozircha o'chiq tugma. */}
           <Tugma disabled title="Savat keyingi darsda">
             Savatga qo&apos;shish
           </Tugma>

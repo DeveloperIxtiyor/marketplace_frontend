@@ -1,18 +1,24 @@
 import type { NextConfig } from "next";
 
-const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
 const nextConfig: NextConfig = {
-  allowedDevOrigins: [
-    "localhost:3000",
-    "simple-gown-justify.ngrok-free.dev",
-  ],
+  allowedDevOrigins: ["simple-gown-justify.ngrok-free.dev"],
+
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '://apple.com', // Apple rasmlari uchun ruxsat
+      },
+      {
+        protocol: 'https',
+        hostname: '*.ngrok-free.dev', // Agar ngrok orqali keladigan rasmlar bo'lsa, wildcard ishlatsa bo'ladi
+      },
+    ],
+  },
   async rewrites() {
     return [
-      {
-        source: "/api/:path*",
-        destination: `${backendUrl}/:path*`,
-      },
+      { source: "/backend/:path*", destination: "http://127.0.0.1:8000/:path*" },
     ];
   },
 };

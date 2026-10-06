@@ -2,6 +2,14 @@
 
 /**
  * Sotuvchi paneli: o'z mahsulotlarini boshqarish.
+ *
+ * `<Himoyalangan rollar={["seller", "admin"]}>` — admin ham kirsin, chunki
+ * u ham mahsulot joylashi mumkin (backendda ham shunday).
+ *
+ * Diqqat: bu sahifa faqat O'Z mahsulotlarini ko'rsatadi — chunki
+ * `GET /products/mening` tokendan egasini aniqlaydi. Frontend "mening
+ * mahsulotlarim" degan filtr yubormaydi, aks holda uni o'zgartirib
+ * boshqaning mahsulotlarini so'rash mumkin bo'lardi.
  */
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
@@ -15,6 +23,7 @@ import {
 } from "@/components/form-ui";
 import { ProductCard } from "@/components/product-card";
 import { Himoyalangan } from "@/components/protected";
+import { RasmBoshqaruv } from "@/components/rasm-boshqaruv";
 import {
   Card,
   CardContent,
@@ -45,7 +54,6 @@ interface FormaHolat {
   tavsif: string;
   narx: string;
   zaxira: string;
-  rasm_url: string;
   category_id: string;
 }
 
@@ -54,7 +62,6 @@ const BOSH_FORMA: FormaHolat = {
   tavsif: "",
   narx: "",
   zaxira: "0",
-  rasm_url: "",
   category_id: "",
 };
 
@@ -71,6 +78,7 @@ function SellerIchki() {
   const [versiya, setVersiya] = useState(0);
   const qaytaYukla = useCallback(() => setVersiya((v) => v + 1), []);
 
+  // Kategoriyalar — forma uchun (bir marta).
   useEffect(() => {
     let bekor = false;
     categoryRoyxat().then(
@@ -86,6 +94,7 @@ function SellerIchki() {
     };
   }, []);
 
+  // Mahsulotlar — `versiya` o'zgarganda qayta yuklanadi.
   useEffect(() => {
     let bekor = false;
     meningMahsulotlarim().then(
@@ -112,7 +121,6 @@ function SellerIchki() {
       tavsif: m.tavsif ?? "",
       narx: String(m.narx),
       zaxira: String(m.zaxira),
-      rasm_url: m.rasm_url ?? "",
       category_id: String(m.kategoriya.id),
     });
     setXato(null);
@@ -141,7 +149,6 @@ function SellerIchki() {
       tavsif: forma.tavsif.trim() || null,
       narx: Number(forma.narx) || 0,
       zaxira: Number(forma.zaxira) || 0,
-      rasm_url: forma.rasm_url.trim() || null,
       category_id: categoryId,
     };
 
@@ -201,7 +208,10 @@ function SellerIchki() {
           <CardTitle>
             {tahrirId === null ? "Yangi mahsulot" : "Tahrirlash"}
           </CardTitle>
-          <CardDescription>Narx so&apos;mda, butun son.</CardDescription>
+          <CardDescription>
+            Narx so&apos;mda, butun son. Rasmni mahsulot yaratilgandan keyin,
+            pastdagi ro&apos;yxatdan yuklaysiz.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={yubor} className="grid gap-3">
@@ -256,15 +266,6 @@ function SellerIchki() {
               value={forma.zaxira}
               onChange={(e) => setForma({ ...forma, zaxira: e.target.value })}
             />
-            <Maydon
-              id="rasm_url"
-              yorliq="Rasm havolasi"
-              type="url"
-              maxLength={500}
-              placeholder="https://..."
-              value={forma.rasm_url}
-              onChange={(e) => setForma({ ...forma, rasm_url: e.target.value })}
-            />
             <MatnMaydon
               id="tavsif"
               yorliq="Tavsif"
@@ -304,7 +305,13 @@ function SellerIchki() {
             key={m.id}
             mahsulot={m}
             amallar={
-              <div className="flex flex-wrap gap-2">
+              <div className="grid gap-3">
+                {/* Rasm boshqaruvi faqat bu yerda — katalogda emas.
+                    Shuning uchun u `ProductCard` ichiga yozilmagan, balki
+                    `amallar` orqali uzatiladi (04-darsdagi naqsh). */}
+                <RasmBoshqaruv mahsulot={m} ozgardi={qaytaYukla} />
+
+                <div className="flex flex-wrap gap-2">
                 <Tugma
                   variant="ikkilamchi"
                   className="w-auto px-3"
@@ -348,6 +355,7 @@ function SellerIchki() {
                     Tiklash
                   </Tugma>
                 )}
+                </div>
               </div>
             }
           />
